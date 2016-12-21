@@ -55,31 +55,66 @@ def execute_operation(o_type, zone, zone_file):
     # 重新读取配置文件以及zone
     # 分别执行rndc的freeze, reload, thaw命令
     if o_type == 'r':
-        print 'r'
-        try:
-            p = subprocess.Popen(["rndc", "freeze", "test.com"], stdout=subprocess.PIPE, bufsize=1)
+        msg = ''
+        #开始执行freeze进程
+        print "start freeze zone"
+        p_f = subprocess.Popen(["rndc", "freeze test.com"], stdout=subprocess.PIPE, bufsize=1)
+        p_f.wait()
+        if p_f.returncode == 0:
+            with p_f.stdout:
+                for line in iter(p_f.stdout.readline, b''):
+                    print line
+                    msg += line
+        else:
+            with p_f.stdout:
+                for line in iter(p_f.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'massage' : msg}, 500
+        #开始执行reload进程
+        p_r = subprocess.Popen(["rndc", "reload test.com"], stdout=subprocess.PIPE, bufsize=1)
+        p_r.wait()
+        if p_r.returncode == 0:
+            with p_r.stdout:
+                for line in iter(p_r.stdout.readline, b''):
+                    print line
+                    msg += line
+        else:
+            with p_r.stdout:
+                for line in iter(p_r.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'massage' : msg}, 500
+        #开始执行thaw进程
+        p_t = subprocess.Popen(["rndc", "thaw test.com"], stdout=subprocess.PIPE, bufsize=1)
+        p_t.wait()
+        if p_t.returncode == 0:
+            with p_t.stdout:
+                for line in iter(p_t.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'massage' : msg}, 200
+        else:
+            with p_t.stdout:
+                for line in iter(p_t.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'massage' : msg}, 500
+    #执行addzone命令, rndc addzone zone '{type master; file "/var/named/zone_file";};'
+    elif o_type == 'a':
+        cmd = 'addzone ' + zone + ' {type master; file "/var/named/' + zone_file + '";};'
+        p = subprocess.Popen(['rndc', cmd], stdout=subprocess.PIPE, bufsize=1)
+        p.wait()
+        if p.returncode is 0:
             with p.stdout:
                 for line in iter(p.stdout.readline, b''):
                     print line
-            p.wait()
-            try:
-                re = subprocess.check_output('rndc reload ' + zone, shell=True)
-                print re
-                try:
-                    th = subprocess.check_output('rndc thaw ' + zone, shell=True)
-                    print th
-                    return {'message' : "operation successed:" + th}, 200
-                except subprocess.CalledProcessError, e:
-                    print "Error Print:" + e.output
-                    return {'message' : e.output}, 500
-            except subprocess.CalledProcessError, e:
-                print "Error Print:" + e.output
-                return {'message' : e.output}, 500
-        except subprocess.CalledProcessError, e:
-            print "Error Print:" + e.output
-            return {'message' : e.output}, 500
-    elif o_type == 'a':
-        print 'a'
+            return {'message' : 'addzone complete'}, 200
+        else:
+            with p.stdout:
+                for line in iter(p.stdout.readline, b''):
+                    print line
+            return {'message' : 'addzone failed'}, 500
     elif o_type == 'n':
         print 'n'
     elif o_type == 'd':
