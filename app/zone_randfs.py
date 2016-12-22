@@ -56,9 +56,9 @@ def execute_operation(o_type, zone, zone_file):
     # 分别执行rndc的freeze, reload, thaw命令
     if o_type == 'r':
         msg = ''
+        cmd = 'freeze ' + zone
         #开始执行freeze进程
-        print "start freeze zone"
-        p_f = subprocess.Popen(["rndc", "freeze test.com"], stdout=subprocess.PIPE, bufsize=1)
+        p_f = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1)
         p_f.wait()
         if p_f.returncode == 0:
             with p_f.stdout:
@@ -70,9 +70,10 @@ def execute_operation(o_type, zone, zone_file):
                 for line in iter(p_f.stdout.readline, b''):
                     print line
                     msg += line
-            return {'massage' : msg}, 500
+            return {'message' : msg}, 500
         #开始执行reload进程
-        p_r = subprocess.Popen(["rndc", "reload test.com"], stdout=subprocess.PIPE, bufsize=1)
+        cmd = 'reload ' + zone
+        p_r = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE, bufsize=1)
         p_r.wait()
         if p_r.returncode == 0:
             with p_r.stdout:
@@ -84,24 +85,26 @@ def execute_operation(o_type, zone, zone_file):
                 for line in iter(p_r.stdout.readline, b''):
                     print line
                     msg += line
-            return {'massage' : msg}, 500
+            return {'message' : msg}, 500
         #开始执行thaw进程
-        p_t = subprocess.Popen(["rndc", "thaw test.com"], stdout=subprocess.PIPE, bufsize=1)
+        cmd = 'thaw' + zone
+        p_t = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE, bufsize=1)
         p_t.wait()
         if p_t.returncode == 0:
             with p_t.stdout:
                 for line in iter(p_t.stdout.readline, b''):
                     print line
                     msg += line
-            return {'massage' : msg}, 200
+            return {'message' : msg}, 200
         else:
             with p_t.stdout:
                 for line in iter(p_t.stdout.readline, b''):
                     print line
                     msg += line
-            return {'massage' : msg}, 500
+            return {'message' : msg}, 500
     #执行addzone命令, rndc addzone zone '{type master; file "/var/named/zone_file";};'
     elif o_type == 'a':
+        msg = ''
         cmd = 'addzone ' + zone + ' {type master; file "/var/named/' + zone_file + '";};'
         p = subprocess.Popen(['rndc', cmd], stdout=subprocess.PIPE, bufsize=1)
         p.wait()
@@ -109,19 +112,115 @@ def execute_operation(o_type, zone, zone_file):
             with p.stdout:
                 for line in iter(p.stdout.readline, b''):
                     print line
-            return {'message' : 'addzone complete'}, 200
+                    msg += line
+            return {'message' : 'addzone complete:' + msg}, 200
         else:
             with p.stdout:
                 for line in iter(p.stdout.readline, b''):
                     print line
-            return {'message' : 'addzone failed'}, 500
+                    msg += line
+            return {'message' : 'addzone failed:' + msg}, 500
+    #执行notify命令，rndc notify zone IN view
     elif o_type == 'n':
-        print 'n'
+        msg = ''
+        cmd = 'notify ' + zone
+        p = subprocess.Popen(['rndc', cmd], stdout=subprocess.PIPE, bufsize=1)
+        p.wait()
+        if p.returncode is 0:
+            with p.stdout:
+                for line in iter(p.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 200
+        else:
+            with p.stdout:
+                for line in iter(p.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+    #删除zone功能,进行freeze,thaw,delzone操作
     elif o_type == 'd':
-        print 'd'
+        msg = ''
+        cmd = 'freeze ' + zone
+        p_f = subprocess.Popen(['rndc', cmd], stdout=subprocess.PIPE, bufsize=1)
+        p_f.wait()
+        if p_f.returncode == 0:
+            with p_f.stdout:
+                for line in iter(p_f.stdout.readline, b''):
+                    print line
+                    msg += line
+        else:
+            with p_f.stdout:
+                for line in iter(p_f.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+
+        cmd = 'thaw ' + zone
+        p_t = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE, bufsize=1)
+        p_t.wait()
+        if p_t.returncode == 0:
+            with p_t.stdout:
+                for line in iter(p_t.stdout.readline, b''):
+                    print line
+                    msg += line
+        else:
+            with p_t.stdout:
+                for line in iter(p_t.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+
+        cmd = 'delzone ' + zone
+        p_d = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE, bufsize=1)
+        p_d.wait()
+        if p_d.returncode == 0:
+            with p_d.stdout:
+                for line in iter(p_d.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : 'you have deleted ' + zone}, 200
+        else:
+            with p_d.stdout:
+                for line in iter(p_d.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+    #进行flush操作，没有包含指定view底下的刷新，只进行指定域名的刷新
     elif o_type == 'f':
-        print 'f'
+        msg = ''
+        cmd = 'flush'
+        p_f = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE, bufsize=1)
+        p_f.wait()
+        if p_f.returncode == 0:
+            with p_f.stdout:
+                for line in iter(p_f.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : 'flush server\'s caches completed'}, 200
+        else:
+            with p_f.stdout:
+                for line in iter(p_f.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : 'flush failed'}, 500
+    #进行status操作，查看dns状态
     elif o_type == 's':
-        print 's'
+        msg = ''
+        cmd = 'status'
+        p_s = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE, bufsize=1)
+        p_s.wait()
+        if p_s.returncode == 0:
+            with p_s.stdout:
+                for line in iter(p_s.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 200
+        else:
+            with p_s.stdout:
+                for line in iter(p_s.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
     else:
         return {'error' : 'illegal operation', 'message' : help_msg}, 400
