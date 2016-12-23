@@ -15,6 +15,4 @@ api.add_resource(check_conf.Check_conf, MAIN_URL + 'check_conf')
 api.add_resource(check_zone.Check_zone, MAIN_URL + 'check_zone')
 api.add_resource(zone_randfs.Zone_randfs, MAIN_URL + 'zone_randfs')
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)
     
