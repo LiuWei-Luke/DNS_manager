@@ -8,7 +8,7 @@ CHECK_CONF = '/etc/named.conf'
 
 class Check_conf(Resource):
     """
-    bind接口，负责DNS服务的启动、关闭、重启、状态
+    检查配置文件
     """
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -23,9 +23,9 @@ class Check_conf(Resource):
         try:
             #执行一个shell命令子进程，
             oper = subprocess.check_output(cmd, shell=True)
-            return {"message" : "operate successed", "result" : oper}, 200
+            return {"message" : "operate successed"}, 200
         except subprocess.CalledProcessError, e:
             print "Error Output:" + e.output[:-1]
-            return {"error" : "operate failed", "output" : e.output}, 500
+            return {"message" : e.output}, 500
 
         

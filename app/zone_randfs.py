@@ -56,7 +56,7 @@ def execute_operation(o_type, zone, zone_file):
     # 重新读取配置文件以及zone
     # 分别执行rndc的freeze, reload, thaw命令
     if o_type == 'r':
-        if zone == '' or file == '':
+        if zone == '':
             return {'message' : "缺少域名" + help_msg}, 400
 
         msg = ''
@@ -111,7 +111,7 @@ def execute_operation(o_type, zone, zone_file):
             return {'message' : msg}, 500
     #执行addzone命令, rndc addzone zone '{type master; file "/var/named/zone_file";};'
     elif o_type == 'a':
-        if zone == '' or file == '':
+        if zone == '' or zone_file == '':
             return {'message' : "缺少域名或域名文件:" + help_msg}, 400
 
         msg = ''

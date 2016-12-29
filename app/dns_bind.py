@@ -10,7 +10,7 @@ class Dns_bind(Resource):
     """
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('operation', type='str',
+        self.reqparse.add_argument('operation', type=str,
                                    help="required operation", location='json')
         super(Dns_bind, self).__init__()
 
@@ -24,8 +24,8 @@ class Dns_bind(Resource):
             #执行一个shell命令子进程，
             oper = subprocess.check_output(cmd, shell=True)
             print oper
-            return {"message" : "operate successed", "result" : oper}, 200
-        except subprocess.CalledProcessError:
-            return {"error" : "operate failed"}, 500
+            return {"message" : "operate successed: " + oper}, 200
+        except subprocess.CalledProcessError, e:
+            return {"message" : "operate failed:" + e.output}, 500
 
         
