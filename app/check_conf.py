@@ -14,7 +14,7 @@ class Check_conf(Resource):
         self.reqparse = reqparse.RequestParser()
         super(Check_conf, self).__init__()
 
-    def post(self):
+    def get(self):
         """
         直接通过get进行操作，之后要附加验证方法
         """
@@ -23,6 +23,7 @@ class Check_conf(Resource):
         try:
             #执行一个shell命令子进程，
             oper = subprocess.check_output(cmd, shell=True)
+            print oper
             return {"message" : "operate successed"}, 200
         except subprocess.CalledProcessError, e:
             print "Error Output:" + e.output[:-1]

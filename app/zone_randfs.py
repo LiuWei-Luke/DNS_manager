@@ -48,6 +48,142 @@ class Zone_randfs(Resource):
 
         return execute_operation(oper, zone, zone_file)
 
+class Zone_status(Resource):
+    '''
+    查看服务状态
+    '''
+    def __init__(self):
+        super(Zone_status, self).__init__()
+
+    def get(self):
+        '''
+        查看状态
+        '''
+        msg = ''
+        cmd = 'status'
+        p_s = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, bufsize=1)
+        p_s.wait()
+        if p_s.returncode == 0:
+            with p_s.stdout:
+                for line in iter(p_s.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 200
+        else:
+            with p_s.stderr:
+                for line in iter(p_s.stderr.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+
+class Zone_reload(Resource):
+    '''
+    reload操作
+    '''
+    def __init__(self):
+        super(Zone_reload, self).__init__()
+
+    def get(self, zone):
+        '''
+        reload指定域名
+        '''
+        msg = ''
+        cmd = 'freeze ' + zone
+        #开始执行freeze进程
+        p_f = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, bufsize=1)
+        p_f.wait()
+        if p_f.returncode == 0:
+            with p_f.stdout:
+                for line in iter(p_f.stdout.readline, b''):
+                    print line
+                    msg += line
+        else:
+            with p_f.stderr:
+                for line in iter(p_f.stderr.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+        #开始执行reload进程
+        cmd = 'reload ' + zone
+        p_r = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, bufsize=1)
+        p_r.wait()
+        if p_r.returncode == 0:
+            with p_r.stdout:
+                for line in iter(p_r.stdout.readline, b''):
+                    print line
+                    msg += line
+        else:
+            with p_r.stderr:
+                for line in iter(p_r.stderr.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+        #开始执行thaw进程
+        cmd = 'thaw ' + zone
+        p_t = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, bufsize=1)
+        p_t.wait()
+        if p_t.returncode == 0:
+            with p_t.stdout:
+                for line in iter(p_t.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 200
+        else:
+            with p_t.stderr:
+                for line in iter(p_t.stderr.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+
+class Zone_flush(Resource):
+    '''
+    刷新接口
+    '''
+    def __init__(self):
+        super(Zone_flush, self).__init__()
+
+    def get(self, zone):
+        msg = ''
+        if zone == 'all':
+            cmd = 'flush'
+            p_f = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, bufsize=1)
+            p_f.wait()
+            if p_f.returncode == 0:
+                with p_f.stdout:
+                    for line in iter(p_f.stdout.readline, b''):
+                        print line
+                        msg += line
+                return {'message' : 'flush server\'s caches completed'}, 200
+            else:
+                with p_f.stderr:
+                    for line in iter(p_f.stderr.readline, b''):
+                        print line
+                        msg += line
+                return {'message' : 'flush failed'}, 500
+        else:
+            cmd = 'flushname ' + zone
+            p_f = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, bufsize=1)
+            p_f.wait()
+            if p_f.returncode == 0:
+                with p_f.stdout:
+                    for line in iter(p_f.stdout.readline, b''):
+                        print line
+                        msg += line
+                return {'message' : 'flush zone\'s caches completed'}, 200
+            else:
+                with p_f.stderr:
+                    for line in iter(p_f.stderr.readline, b''):
+                        print line
+                        msg += line
+                return {'message' : 'flush failed'}, 500
+
+
 
 def execute_operation(o_type, zone, zone_file):
     """
