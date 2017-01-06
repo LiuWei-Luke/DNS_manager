@@ -5,7 +5,7 @@ import dns_named
 import check_conf
 import check_zone
 import zone_randfs
-import download
+import backup
 
 app = Flask(__name__)
 api = Api(app)
@@ -30,6 +30,8 @@ api.add_resource(zone_randfs.Zone_delete, MAIN_URL + 'zones/delete/<zone>')
 #发送notify
 api.add_resource(zone_randfs.Zone_notify, MAIN_URL + 'zones/notify/<zone>')
 #下载备份文件
-api.add_resource(download.Download, MAIN_URL + 'download/<filename>')
+api.add_resource(backup.Download, MAIN_URL + 'download/<filename>')
+#对文件进行备份
+api.add_resource(backup.Backup, MAIN_URL + 'backup')
 
     

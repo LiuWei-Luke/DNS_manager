@@ -2,47 +2,17 @@
     程序入口文件为： main.py
 
 路由：
+    主路由:/apis/v1.0/
     路由地址文件为: views.py
 使用：
-    包括四个主要接口:
-    1、/check_conf
-        用途：检测配置文件
-        方法：post
-        参数：无
-        返回：
-            成功：无消息 200
-            失败：错误信息 500
-    2、/check_zone
-        用途：检测域名文件
-        方法：post
-        参数：domain : 域名
-        返回：
-            成功：显示信息 200
-            失败：错误信息 500
-            缺少参数：提示信息 400
-    3、/dns_bind
-        用途：对named服务进行操作
-        方法：post
-        参数 operation : named操作
-        返回：
-            成功：显示信息 200
-            失败：错误信息 500
-            缺少参数：提示信息 400
-    4、/zone_randfs
-        用途:动态添加、删除域名，加载配置，刷新缓存，查看状态
-        方法：post
-        参数:
-            oper 操作:
-                r 加载配置       需要域名名称
-                a 添加域名       需要域名名称及与之相应的域名文件
-                n 重新发送notify消息      需要域名名称 
-                d 删除域名       需要域名名称 （此处删除的只是server中的记录，域名文件保留）
-                f 刷新缓存       需要域名名称
-                s 查看状态       不需要参数
-            view 操作的视图
-            zone zone名称
-            file zone文件         
-        返回:
-            成功：显示信息 200
-            失败：错误信息 500
-            缺少参数：提示信息 400
+    named_conf:检查服务配置
+    zones/check/<zone> 检查给定域名及其配置文件
+    named/?oper= 后面跟named服务的操作，start ,stop, status, reload等
+    server_status 查看服务状态
+    zones/reload/<zone> 重新加载给定域名
+    zones/flush/<zone> 刷新域名缓存活这个服务缓存，all代表所有
+    zones  方法：post 参数：['zone']，添加给定域名，需要有该域名配置文件
+    zones/delete/<zone> 删除域名,这里只是删除服务记录,保留了域名的配置文件
+    zones/notify/<zone> 发送notify给指定域名
+    download/<filename> 从备份文件夹中下载指定文件
+    backup 对域名文件进行备份并打包压缩
