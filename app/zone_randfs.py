@@ -1,7 +1,9 @@
 #-*- coding:utf-8 -*-
 
 import subprocess
+import os
 from flask_restful import Resource, reqparse
+from flask import request
 
 class Zone_status(Resource):
     '''
@@ -164,14 +166,45 @@ class Zone_add(Resource):
                     msg += line
             return {'message' : 'addzone failed:' + msg}, 500
 
-class Zone_delete(Resource):
+class Zone(Resource):
     '''
-    删除域名
+    指定域名的操作，包括删除，查看，修改
     '''
     def __init__(self):
-        super(Zone_delete, self).__init__()
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('conf', type=dict, location='json')
+        super(Zone, self).__init__()
 
     def get(self, zone):
+        '''
+        查看给定域名的配置文件
+        '''
+        msg = ''
+        f_path = '/var/named/' + zone + '.zone'
+
+        try:
+            with open(f_path) as f:
+                for line in f.readlines():
+                    msg += line
+            return {'message' : msg}, 200
+        except IOError as err:
+            return {'message' : err}, 500
+
+    def put(self, zone):
+        '''
+        更新指定域名的配置文件
+        '''
+        args = self.reqparse.parse_args()
+        conf = args['conf']
+        for k, v in conf:
+            print k + '    IN    ' + 'A    ' + v
+        return {'message' : '完成'}, 200
+
+
+    def delete(self, zone):
+        '''
+        从记录中删除服务的记录
+        '''
         msg = ''
         cmd = 'freeze ' + zone
         p_f = subprocess.Popen(['rndc', cmd], stdout=subprocess.PIPE,
@@ -247,3 +280,26 @@ class Zone_notify(Resource):
                     print line
                     msg += line
             return {'message' : msg}, 500
+
+class Zone_list(Resource):
+    '''
+    查看当前解析域名列表
+    '''
+    def __init__(self):
+        super(Zone_list, self).__init__()
+
+    def get(self):
+        msg = '列表获取成功'
+        domain_list = []
+
+        for f in os.listdir("/var/named/"):
+            if f.endswith(".nzf"):
+                f_name = "/var/named/" + f
+        try:
+            with open(f_name) as text:
+                for line in text.readlines():
+                    print line
+                    domain_list.append(line)
+            return {'message' : msg, 'list' : domain_list}, 200
+        except IOError as err:
+            return {'message' : err}, 200
