@@ -169,7 +169,7 @@ class Zone_delete(Resource):
     删除域名
     '''
     def __init__(self):
-        super(Zone_delete, self).__init__(self)
+        super(Zone_delete, self).__init__()
 
     def get(self, zone):
         msg = ''

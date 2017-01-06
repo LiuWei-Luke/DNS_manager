@@ -26,7 +26,7 @@ class Backup(Resource):
 
     def get(self):
         msg = ''
-        p = subprocess.Popen(['/root/hone/DNS_manager/bin/backup_zone.sh'],
+        p = subprocess.Popen(['/root/home/DNS_manager/bin/backup_zone.sh'],
                              stdout=subprocess.PIPE, bufsize=1)
         p.wait()
         if p.returncode == 0:
