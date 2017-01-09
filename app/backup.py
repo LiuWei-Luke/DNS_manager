@@ -25,7 +25,6 @@ class Backup(Resource):
         super(Backup, self).__init__()
 
     def get(self):
-        msg = ''
         p = subprocess.Popen(['/root/home/DNS_manager/bin/backup_zone.sh'],
                              stdout=subprocess.PIPE, bufsize=1)
         p.wait()
@@ -33,6 +32,5 @@ class Backup(Resource):
             with p.stdout:
                 for line in iter(p.stdout.readline, b''):
                     print line
-                    msg += line
-            return {'message' : msg}, 200
+            return send_from_directory('/root/backups/', 'zone.tar.gz', as_attachment=True)
 
