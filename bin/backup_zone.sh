@@ -3,4 +3,4 @@
 for F in /var/named/*.zone;
 do cp -vp ${F} /root/backups;done
 
-tar -zcvf /root/backups/zone.tar.gz /root/backups/*.zone
+tar -zcvf /home/backups/zone.tar.gz /home/backups/*.zone
