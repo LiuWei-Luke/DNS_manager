@@ -171,8 +171,6 @@ class Zone(Resource):
     指定域名的操作，包括删除，查看，修改
     '''
     def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('conf', type=dict, location='json')
         super(Zone, self).__init__()
 
     def get(self, zone):
@@ -194,12 +192,38 @@ class Zone(Resource):
         '''
         更新指定域名的配置文件
         '''
-        args = self.reqparse.parse_args()
-        conf = args['conf']
-        for k, v in conf:
-            print k + '    IN    ' + 'A    ' + v
-        return {'message' : '完成'}, 200
+        m_ip = request.args.get('ip')
+        m_domain = request.args.get('domain')
 
+        #存储文件的每行内容
+        list_content = []
+        try:
+            with open('/var/named/' + zone + '.zone') as f:
+                for l in f.readlines():
+                    list_content.append(l)
+        except IOError as err:
+            return {"message" : "文件读取失败," + str(err)}, 500
+
+        #要修改的内容只从第九行开始
+        list_content_after = list_content[8:]
+
+        #有相同的域名就替换，没有就添加
+        for i in range(len(list_content_after)):
+            if m_domain in list_content_after[i]:
+                list_content_after[i] = m_domain + "\tIN\tA\t" + m_ip + '\n'
+                break
+            if i+1 == len(list_content_after):
+                list_content_after.append(m_domain + "\tIN\tA\t" + m_ip + '\n')
+        #重新拼接文件
+        list_content_complete = list_content[:8] + list_content_after
+
+        #写入文件，此处写入是重新创建了个文件，权限并没有改变
+        try:
+            with open('/var/named/' + zone + '.zone', "w") as f:
+                f.writelines(list_content_complete)
+            return {"message" : "修改成功"}, 200
+        except IOError as err:
+            return {"message" : "文件写入失败," + str(err)}, 500
 
     def delete(self, zone):
         '''

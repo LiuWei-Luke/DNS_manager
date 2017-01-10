@@ -27,7 +27,10 @@ api.add_resource(zone_randfs.Zone_flush, MAIN_URL + 'zones/flush/<zone>')
 api.add_resource(zone_randfs.Zone_list, MAIN_URL + 'zones')
 #添加域名，需要指定域名文件
 api.add_resource(zone_randfs.Zone_add, MAIN_URL + 'zones')
-#删除zone功能,进行freeze,thaw,delzone操作，这里删除只是删除server中的zone，保留了zone文件
+#对单个配置文件的操作
+#删除，进行freeze,thaw,delzone操作，这里删除只是删除server中的zone，保留了zone文件
+#查看
+#修改
 api.add_resource(zone_randfs.Zone, MAIN_URL + 'zones/<zone>')
 #发送notify
 api.add_resource(zone_randfs.Zone_notify, MAIN_URL + 'zones/notify/<zone>')

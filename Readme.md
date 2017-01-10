@@ -12,7 +12,10 @@
     zones/reload/<zone> 重新加载给定域名
     zones/flush/<zone> 刷新域名缓存活这个服务缓存，all代表所有
     zones  方法：post 参数：['zone']，添加给定域名，需要有该域名配置文件
-    zones/delete/<zone> 删除域名,这里只是删除服务记录,保留了域名的配置文件
+    zones/<zone> 对单个配置文件的操作 
+        方法: delete, 删除域名,这里只是删除服务记录,保留了域名的配置文件
+            put, 更新文件,url跟参数ip,domain
+            get, 直接返回配置文件内容
     zones/notify/<zone> 发送notify给指定域名
     download/<filename> 从备份文件夹中下载指定文件
-    backup 对域名文件进行备份并打包压缩
+    backup 对域名文件进行备份打包压缩并下载
