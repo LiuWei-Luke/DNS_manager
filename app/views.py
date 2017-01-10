@@ -14,15 +14,15 @@ MAIN_URL = '/apis/v1.0/'
 #检查named配置
 api.add_resource(check_conf.Check_conf, MAIN_URL + 'named_conf')
 #检查域名及其配置文件
-api.add_resource(check_zone.Check_zone, MAIN_URL + 'zones/check/<zone>')
-#直接进行named操作
+api.add_resource(check_zone.Check_zone, MAIN_URL + 'zones/<zone>/check')
+#直接进行named操作,start ,stop, status, reload等
 api.add_resource(dns_named.Dns_named, MAIN_URL + 'named/')
 #查看域名解析服务状态
 api.add_resource(zone_randfs.Zone_status, MAIN_URL + 'server_status')
 #重新加载一个域名
-api.add_resource(zone_randfs.Zone_reload, MAIN_URL + 'zones/reload/<zone>')
+api.add_resource(zone_randfs.Zone_reload, MAIN_URL + 'zones/<zone>/reload')
 #刷新域名缓存或整个缓存
-api.add_resource(zone_randfs.Zone_flush, MAIN_URL + 'zones/flush/<zone>')
+api.add_resource(zone_randfs.Zone_flush, MAIN_URL + 'zones/<zone>/flush')
 #查看当前解析域名列表
 api.add_resource(zone_randfs.Zone_list, MAIN_URL + 'zones')
 #添加域名，需要指定域名文件

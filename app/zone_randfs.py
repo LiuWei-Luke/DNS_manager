@@ -171,6 +171,8 @@ class Zone(Resource):
     指定域名的操作，包括删除，查看，修改
     '''
     def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('conf', type=str, location='json')
         super(Zone, self).__init__()
 
     def get(self, zone):
@@ -192,8 +194,15 @@ class Zone(Resource):
         '''
         更新指定域名的配置文件
         '''
-        m_ip = request.args.get('ip')
-        m_domain = request.args.get('domain')
+        args = self.reqparse.parse_args()
+        conf = args['conf']
+        m_ip = conf['ip']
+        if not m_ip:
+            return {'message' : '参数错误'}, 403
+
+        m_domain = conf['domain']
+        if not m_domain:
+            return {'message' : '参数错误'}, 403
 
         #存储文件的每行内容
         list_content = []

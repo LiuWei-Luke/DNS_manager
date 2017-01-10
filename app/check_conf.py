@@ -24,8 +24,8 @@ class Check_conf(Resource):
             #执行一个shell命令子进程，
             oper = subprocess.check_output(cmd, shell=True)
             print oper
-            return {"message" : "operate successed"}, 200
-        except subprocess.CalledProcessError, e:
+            return {"message" : "named配置无误"}, 200
+        except subprocess.CalledProcessError as e:
             print "Error Output:" + e.output[:-1]
             return {"message" : e.output}, 500
 
