@@ -157,8 +157,7 @@ class Zone_add(Resource):
             with p_a.stdout:
                 for line in iter(p_a.stdout.readline, b''):
                     print line
-                    msg += line
-            return {'message' : 'addzone complete:' + msg}, 200
+                    msg += '添加完成'
         else:
             with p_a.stderr:
                 for line in iter(p_a.stderr.readline, b''):
@@ -166,13 +165,33 @@ class Zone_add(Resource):
                     msg += line
             return {'message' : 'addzone failed:' + msg}, 500
 
+        '''
+        添加完成自动重置一次服务
+        '''
+        cmd = 'reload ' + zone
+        p_r = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, bufsize=1)
+        p_r.wait()
+        if p_r.returncode == 0:
+            with p_r.stdout:
+                for line in iter(p_r.stdout.readline, b''):
+                    print line
+                    msg += line
+                return {'message' : '服务重置成功' + msg}, 200
+        else:
+            with p_r.stderr:
+                for line in iter(p_r.stderr.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+
 class Zone(Resource):
     '''
     指定域名的操作，包括删除，查看，修改
     '''
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('conf', type=str, location='json')
+        self.reqparse.add_argument('conf', type=dict, location='json')
         super(Zone, self).__init__()
 
     def get(self, zone):
@@ -194,6 +213,8 @@ class Zone(Resource):
         '''
         更新指定域名的配置文件
         '''
+        msg = ''
+
         args = self.reqparse.parse_args()
         conf = args['conf']
         m_ip = conf['ip']
@@ -230,9 +251,62 @@ class Zone(Resource):
         try:
             with open('/var/named/' + zone + '.zone', "w") as f:
                 f.writelines(list_content_complete)
-            return {"message" : "修改成功"}, 200
+            msg += "修改成功"
         except IOError as err:
             return {"message" : "文件写入失败," + str(err)}, 500
+
+        '''
+        重新加载域名文件
+        '''
+        cmd = 'freeze ' + zone
+        #开始执行freeze进程
+        p_f = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, bufsize=1)
+        p_f.wait()
+        if p_f.returncode == 0:
+            with p_f.stdout:
+                for line in iter(p_f.stdout.readline, b''):
+                    print line
+                    msg += line
+        else:
+            with p_f.stderr:
+                for line in iter(p_f.stderr.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+        #开始执行reload进程
+        cmd = 'reload ' + zone
+        p_r = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, bufsize=1)
+        p_r.wait()
+        if p_r.returncode == 0:
+            with p_r.stdout:
+                for line in iter(p_r.stdout.readline, b''):
+                    print line
+                    msg += line
+        else:
+            with p_r.stderr:
+                for line in iter(p_r.stderr.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
+        #开始执行thaw进程
+        cmd = 'thaw ' + zone
+        p_t = subprocess.Popen(["rndc", cmd], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, bufsize=1)
+        p_t.wait()
+        if p_t.returncode == 0:
+            with p_t.stdout:
+                for line in iter(p_t.stdout.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 200
+        else:
+            with p_t.stderr:
+                for line in iter(p_t.stderr.readline, b''):
+                    print line
+                    msg += line
+            return {'message' : msg}, 500
 
     def delete(self, zone):
         '''
